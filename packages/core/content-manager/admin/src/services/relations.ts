@@ -122,13 +122,19 @@ const relationsApi = contentManagerApi.injectEndpoints({
       },
       serializeQueryArgs: (args) => {
         const { endpointName, queryArgs } = args;
+        /**
+         * Every param that scopes the results must be part of the cache key, otherwise
+         * different documents/components (`id`), locales or statuses share the same cached list.
+         * `page` is left out on purpose: pages of the same search are merged into one entry.
+         */
+        const params = { ...queryArgs.params };
+        delete params.page;
+
         return {
           endpointName,
           model: queryArgs.model,
           targetField: queryArgs.targetField,
-          _q: queryArgs.params?._q,
-          idsToOmit: queryArgs.params?.idsToOmit,
-          idsToInclude: queryArgs.params?.idsToInclude,
+          params,
         };
       },
       merge: (currentCache, newItems) => {
